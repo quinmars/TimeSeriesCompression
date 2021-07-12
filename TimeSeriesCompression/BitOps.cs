@@ -45,5 +45,15 @@ namespace TimeSeriesCompression
 
             return 63 - TrailingZeroCount(v);
         }
+
+        internal static double ToDouble(this ulong value)
+        {
+            return Unsafe.As<ulong, double>(ref value);
+        }
+
+        internal static ulong ToUInt64(this double value)
+        {
+            return Unsafe.As<double, ulong>(ref value);
+        }
     }
 }

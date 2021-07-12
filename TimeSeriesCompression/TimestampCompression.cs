@@ -5,60 +5,6 @@ namespace TimeSeriesCompression
 {
     public static class TimestampCompression
     {
-        private enum EncoderState
-        {
-            Timestamp,
-            Delta,
-            DeltaOfDelta
-        }
-
-        public static DateTimeOffset[] Decode(byte[] buffer, int count)
-        {
-            var array = new DateTimeOffset[count];
-            var reader = new BitReader(buffer);
-
-            long lastTicks = 0;
-            long lastDelta = 0;
-            var currentOffset = TimeSpan.Zero;
-
-            var state = EncoderState.Timestamp;
-            var dt = DateTimeOffset.MinValue;
-
-            for (int i = 0; i < count; i++)
-            {
-                if (state != EncoderState.Timestamp && reader.TryGetUInt64(0b1_1111_1110, 9))
-                {
-                    state = EncoderState.Timestamp;
-                }
-
-                switch (state)
-                {
-                    case EncoderState.Timestamp:
-                        dt = reader.ReadCompressedTimestamp();
-                        currentOffset = dt.Offset;
-                        state = EncoderState.Delta;
-                        break;
-
-                    case EncoderState.Delta:
-                        lastDelta = reader.ReadCompressedInt64();
-                        dt = new DateTimeOffset(lastTicks + lastDelta, currentOffset);
-                        state = EncoderState.DeltaOfDelta;
-                        break;
-
-                    case EncoderState.DeltaOfDelta:
-                        var deltaOfDelta = reader.ReadCompressedInt64();
-                        lastDelta = lastDelta + deltaOfDelta;
-                        dt = new DateTimeOffset(lastTicks + lastDelta, currentOffset);
-                        break;
-                }
-
-                array[i] = dt;
-                lastTicks = dt.Ticks;
-            }
-
-            return array;
-        }
-
         internal static void WriteCompressedInt64(this BitWriter writer, long delta)
         {
             var d = delta < 0 ? ~delta : delta;
@@ -134,10 +80,10 @@ namespace TimeSeriesCompression
         internal static void WriteCompressedTimestamp(this BitWriter writer, DateTimeOffset dt)
         {
             writer.WriteUInt64((ulong)dt.Ticks);
-            WriteOffset(writer, dt.Offset.Ticks);
+            writer.WriteOffset(dt.Offset.Ticks);
         }
         
-        private static void WriteOffset(BitWriter writer, long ticks)
+        private static void WriteOffset(this BitWriter writer, long ticks)
         {
             switch (ticks)
             {
@@ -291,14 +237,7 @@ namespace TimeSeriesCompression
             }
         }
         
-        internal static DateTimeOffset ReadCompressedTimestamp(this BitReader reader)
-        {
-            var ticks = reader.ReadInt64();
-            var offset = reader.ReadOffset();
-            return new DateTimeOffset(ticks, new TimeSpan(offset));
-        }
-        
-        private static long ReadOffset(this BitReader reader)
+        internal static long ReadOffset(this BitReader reader)
         {
             if (reader.TryGetUInt64(0, 1))
             {

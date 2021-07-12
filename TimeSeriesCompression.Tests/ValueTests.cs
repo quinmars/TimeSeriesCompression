@@ -78,11 +78,10 @@ namespace TimeSeriesCompression.Tests
             var buffer = new byte[encoder.ByteCount];
             encoder.Encode(buffer);
 
-            var result = ValueCompression.Decode(buffer, count);
+            var decoder = new ValueDecoder(buffer, count);
 
-            result.Should()
+            decoder.Should()
                 .Equal(value);
-
         }
 
         [InlineData(0xffff_ffff_ffff_ffffUL)]

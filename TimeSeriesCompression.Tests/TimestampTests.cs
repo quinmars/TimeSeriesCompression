@@ -158,9 +158,9 @@ namespace TimeSeriesCompression.Tests
             var buffer = new byte[encoder.ByteCount];
             encoder.Encode(buffer);
 
-            var result = TimestampCompression.Decode(buffer, count);
+            var decoder = new TimestampDecoder(buffer, count);
 
-            result.Should()
+            decoder.Should()
                 .Equal(timestamps);
         }
     }
