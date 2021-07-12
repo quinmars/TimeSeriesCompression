@@ -81,7 +81,7 @@ namespace TimeSeriesCompression
                         break;
 
                     case EncoderState.Delta:
-                        if (_reader.TryGetUInt64(0, 1))
+                        if (_reader.TryReadUInt64(0, 1))
                         {
                             value = _lastValue;
                             break;

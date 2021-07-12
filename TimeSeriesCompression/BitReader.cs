@@ -38,7 +38,7 @@ namespace TimeSeriesCompression
             return ReadUInt64(DwordBitCount);
         }
 
-        internal bool TryGetUInt64(ulong val, int width)
+        internal bool TryReadUInt64(ulong val, int width)
         {
             if (PeakUInt64(width) == val)
             {

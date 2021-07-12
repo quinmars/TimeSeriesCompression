@@ -75,7 +75,7 @@ namespace TimeSeriesCompression
                     return false;
                 }
 
-                if (_state != EncoderState.Timestamp && _reader.TryGetUInt64(0b1_1111_1110, 9))
+                if (_state != EncoderState.Timestamp && _reader.TryReadUInt64(0b1_1111_1110, 9))
                 {
                     _state = EncoderState.Timestamp;
                 }

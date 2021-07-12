@@ -173,7 +173,7 @@ namespace TimeSeriesCompression
         internal static long ReadCompressedInt64(this BitReader reader)
         {
             // A value of 0 is encoded a single 0 bit
-            if (reader.TryGetUInt64(0, 1))
+            if (reader.TryReadUInt64(0, 1))
             {
                 return 0;
             }
@@ -181,7 +181,7 @@ namespace TimeSeriesCompression
             // 7 bit wide mask == 0x7F
             // Write 0b10 followed by:
             // 8 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b10, 2))
+            else if (reader.TryReadUInt64(0b10, 2))
             { 
                 return reader.ReadInt64(8);
             }
@@ -189,7 +189,7 @@ namespace TimeSeriesCompression
             // 14 bit wide mask == 0x3FFF
             // Write 0b110 followed by:
             // 15 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b110, 3))
+            else if (reader.TryReadUInt64(0b110, 3))
             { 
                 return reader.ReadInt64(15);
             }
@@ -197,7 +197,7 @@ namespace TimeSeriesCompression
             // 20 bit wide mask 0xFFFFF
             // Write 0b1110 followed by:
             // 21 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b1110, 4))
+            else if (reader.TryReadUInt64(0b1110, 4))
             {
                 return reader.ReadInt64(21);
             }
@@ -205,7 +205,7 @@ namespace TimeSeriesCompression
             // 24 bit wide mask 0xffffff
             // Write 0b11110 followed by:
             // 25 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b1_1110, 5))
+            else if (reader.TryReadUInt64(0b1_1110, 5))
             {
                 return reader.ReadInt64(25);
             }
@@ -213,7 +213,7 @@ namespace TimeSeriesCompression
             // 27 bit wide mask 0x7ffffff
             // Write 0b11110 followed by:
             // 28 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b11_1110, 6))
+            else if (reader.TryReadUInt64(0b11_1110, 6))
             {
                 return reader.ReadInt64(28);
             }
@@ -221,13 +221,13 @@ namespace TimeSeriesCompression
             // 30 bit wide mask 0x3fffffff
             // Write 0b11110 followed by:
             // 31 bits (1 bit for negative numbers)
-            else if (reader.TryGetUInt64(0b111_1110, 7))
+            else if (reader.TryReadUInt64(0b111_1110, 7))
             {
                 return reader.ReadInt64(31);
             }
             // Write 0b11110 followed by:
             // The whole value
-            else if (reader.TryGetUInt64(0b1111_1110, 8))
+            else if (reader.TryReadUInt64(0b1111_1110, 8))
             {
                 return reader.ReadInt64();
             }
@@ -239,11 +239,11 @@ namespace TimeSeriesCompression
         
         internal static long ReadOffset(this BitReader reader)
         {
-            if (reader.TryGetUInt64(0, 1))
+            if (reader.TryReadUInt64(0, 1))
             {
                 return 0;
             }
-            else if (reader.TryGetUInt64(0b10, 2))
+            else if (reader.TryReadUInt64(0b10, 2))
             {
                 ulong tz = reader.ReadUInt64(5);
 
@@ -301,7 +301,7 @@ namespace TimeSeriesCompression
                         throw new InvalidOperationException();
                 }
             }
-            else if (reader.TryGetUInt64(0b110, 3))
+            else if (reader.TryReadUInt64(0b110, 3))
             {
                 return reader.ReadInt64();
             }
