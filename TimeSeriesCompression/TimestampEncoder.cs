@@ -21,7 +21,6 @@ namespace TimeSeriesCompression
 
         EncoderState _state = EncoderState.Timestamp;
 
-        public IEnumerable<ulong> Dwords => _writer.Dwords;
         public int ByteCount => _writer.ByteCount;
 
         public TimestampEncoder(int capacity)
