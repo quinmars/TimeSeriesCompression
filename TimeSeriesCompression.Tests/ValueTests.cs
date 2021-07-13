@@ -47,11 +47,37 @@ namespace TimeSeriesCompression.Tests
             15,
             16,
             20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
             100,
             2,
             1234,
             14,
         };
+        
+        public static double[] SpecialValues { get; } = new[]
+        {
+            0.0,
+            0.0,
+            double.Epsilon,
+            double.MaxValue,
+            double.MinValue,
+            double.PositiveInfinity,
+            double.NegativeInfinity,
+            double.NaN,
+            Math.PI,
+            Math.E,
+            Math.Tau
+        };
+        
 
         public static IEnumerable<object[]> Values { get; } = new[]
         {
@@ -59,7 +85,8 @@ namespace TimeSeriesCompression.Tests
             TwoValues,
             ThreeValues,
             ZeroDeltaValues,
-            IntegerValues
+            IntegerValues,
+            SpecialValues
         }
         .Select(s => new[] { s });
 
