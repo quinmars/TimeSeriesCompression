@@ -17,7 +17,7 @@ namespace TimeSeriesCompression
 
         long _lastTicks = 0;
         long _lastDelta = 0;
-        long _currentOffset = 0;
+        long _lastOffset = 0;
 
         EncoderState _state = EncoderState.Timestamp;
 
@@ -29,9 +29,12 @@ namespace TimeSeriesCompression
             _writer = new BitWriter(capacity);
         }
 
-        public void Add(DateTimeOffset dt)
+        public void Add(DateTimeOffset d)
         {
-            if (_state != EncoderState.Timestamp && dt.Offset.Ticks != _currentOffset)
+            var ticks = d.Ticks;
+            var offset = d.Offset.Ticks;
+
+            if (_state != EncoderState.Timestamp && offset != _lastOffset)
             {
                 _writer.WriteUInt64(0b1_1111_1110, 9);
                 _state = EncoderState.Timestamp;
@@ -40,25 +43,27 @@ namespace TimeSeriesCompression
             switch (_state)
             {
                 case EncoderState.Timestamp:
-                    _writer.WriteCompressedTimestamp(dt);
-                    _currentOffset = dt.Offset.Ticks;
+                    _writer.WriteUInt64((ulong)ticks);
+                    _writer.WriteOffset(offset);
+
+                    _lastOffset = offset;
                     _state = EncoderState.Delta;
                     break;
 
                 case EncoderState.Delta:
-                    _lastDelta = dt.Ticks - _lastTicks;
+                    _lastDelta = ticks - _lastTicks;
                     _writer.WriteCompressedInt64(_lastDelta);
                     _state = EncoderState.DeltaOfDelta;
                     break;
 
                 case EncoderState.DeltaOfDelta:
-                    var delta = dt.Ticks - _lastTicks;
+                    var delta = ticks - _lastTicks;
                     _writer.WriteCompressedInt64(delta - _lastDelta);
                     _lastDelta = delta;
                     break;
             }
 
-            _lastTicks = dt.Ticks;
+            _lastTicks = ticks;
         }
 
         public void Encode(Span<byte> buffer)

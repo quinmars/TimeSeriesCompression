@@ -39,14 +39,14 @@ namespace TimeSeriesCompression
             private readonly BitReader _reader;
             private int _count;
             
-            private long _currentTicks;
-            private long _currentOffset;
+            private long _ticks;
+            private long _offset;
             private long _delta;
 
             private EncoderState _state;
             private int _index;
 
-            public DateTimeOffset Current => new DateTimeOffset(_currentTicks, new TimeSpan(_currentOffset)); 
+            public DateTimeOffset Current => new DateTimeOffset(_ticks, new TimeSpan(_offset)); 
 
             object IEnumerator.Current => Current;
 
@@ -55,8 +55,8 @@ namespace TimeSeriesCompression
                 _reader = new BitReader(buffer);
                 _count = count;
                 
-                _currentTicks = 0;
-                _currentOffset = 0;
+                _ticks = 0;
+                _offset = 0;
                 _delta = 0;
                 _state = EncoderState.Timestamp;
                 _index = 0;
@@ -68,8 +68,6 @@ namespace TimeSeriesCompression
 
             public bool MoveNext()
             {
-                long ticks = 0;
-
                 if (_index >= _count)
                 {
                     return false;
@@ -83,25 +81,24 @@ namespace TimeSeriesCompression
                 switch (_state)
                 {
                     case EncoderState.Timestamp:
-                        ticks = _reader.ReadInt64();
-                        _currentOffset = _reader.ReadOffset();
+                        _ticks = _reader.ReadInt64();
+                        _offset = _reader.ReadOffset();
                         _state = EncoderState.Delta;
                         break;
 
                     case EncoderState.Delta:
                         _delta = _reader.ReadCompressedInt64();
-                        ticks = _currentTicks + _delta;
+                        _ticks = _ticks + _delta;
                         _state = EncoderState.DeltaOfDelta;
                         break;
 
                     case EncoderState.DeltaOfDelta:
                         var deltaOfDelta = _reader.ReadCompressedInt64();
                         _delta = _delta + deltaOfDelta;
-                        ticks = _currentTicks + _delta;
+                        _ticks = _ticks + _delta;
                         break;
                 }
-
-                _currentTicks = ticks;
+                
                 _index++;
                 return true;
             }

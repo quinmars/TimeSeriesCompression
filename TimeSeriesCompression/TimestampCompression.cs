@@ -77,13 +77,7 @@ namespace TimeSeriesCompression
             }
         }
         
-        internal static void WriteCompressedTimestamp(this BitWriter writer, DateTimeOffset dt)
-        {
-            writer.WriteUInt64((ulong)dt.Ticks);
-            writer.WriteOffset(dt.Offset.Ticks);
-        }
-        
-        private static void WriteOffset(this BitWriter writer, long ticks)
+        internal static void WriteOffset(this BitWriter writer, long ticks)
         {
             switch (ticks)
             {

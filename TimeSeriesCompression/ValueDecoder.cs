@@ -38,13 +38,13 @@ namespace TimeSeriesCompression
             private readonly BitReader _reader;
             private int _count;
             
-            private ulong _lastValue;
+            private ulong _value;
             private ulong _leadingBits;
             private ulong _trailingBits;
             private EncoderState _state;
             private int _index;
 
-            public double Current => _lastValue.ToDouble();
+            public double Current => _value.ToDouble();
 
             object IEnumerator.Current => Current;
 
@@ -53,7 +53,7 @@ namespace TimeSeriesCompression
                 _reader = new BitReader(buffer);
                 _count = count;
                 
-                _lastValue = 0;
+                _value = 0;
                 _leadingBits = 0;
                 _trailingBits = 0;
                 _state = EncoderState.Value;
@@ -66,8 +66,6 @@ namespace TimeSeriesCompression
 
             public bool MoveNext()
             {
-                ulong value = 0;
-
                 if (_index >= _count)
                 {
                     return false;
@@ -76,14 +74,14 @@ namespace TimeSeriesCompression
                 switch (_state)
                 {
                     case EncoderState.Value:
-                        value = _reader.ReadUInt64();
+                        _value = _reader.ReadUInt64();
                         _state = EncoderState.Delta;
                         break;
 
                     case EncoderState.Delta:
                         if (_reader.TryReadUInt64(0, 1))
                         {
-                            value = _lastValue;
+                            // _value is unchanged
                             break;
                         }
 
@@ -97,12 +95,11 @@ namespace TimeSeriesCompression
                         var w = (int)(64 - _trailingBits - _leadingBits);
                         var delta = _reader.ReadUInt64(w) << (int)_trailingBits;
 
-                        value = _lastValue ^ delta;
+                        _value = _value ^ delta;
 
                         break;
                 }
 
-                _lastValue = value;
                 _index++;
                 return true;
             }
