@@ -54,6 +54,8 @@ namespace TimeSeriesCompression
                     }
                     else
                     {
+                        _lastLeadingBits = leadingBits;
+                        _lastTrailingBits = trailingBits;
                         _writer.WriteUInt64(0b11, 2);
                         _writer.WriteUInt64((ulong)leadingBits, 5);
                         _writer.WriteUInt64((ulong)trailingBits, 6);
